@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: node-login-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: node-login-db
+    ports:
+      - "5432:5432"
+    volumes:
+      - node-login-db:/var/lib/postgresql/data
+  app:
+    image: node:latest
+    container_name: node-login-app
+    working_dir: /usr/src/
+    volumes:
+      - .:/usr/src/
+      # - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+    stdin_open: true  # Set agar bisa interactive
+    tty: true  # Menjaga terminal tetap aktif
+    command: sh  # Gunakan shell di dalam container
+    # menunggu layanan db aktif terlebih dahulu
+    depends_on: 
+      - db
+
+volumes:
+  node-login-db:
+  # node_modules:
