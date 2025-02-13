@@ -13,9 +13,9 @@ services:
   app:
     image: node:latest
     container_name: node-login-app
-    working_dir: /usr/src/
+    working_dir: /usr/src/app
     volumes:
-      - .:/usr/src/
+      - ./app:/usr/src/app
       # - /usr/src/app/node_modules
     ports:
       - "3000:3000"
@@ -23,7 +23,7 @@ services:
       NODE_ENV: development
     stdin_open: true  # Set agar bisa interactive
     tty: true  # Menjaga terminal tetap aktif
-    command: sh  # Gunakan shell di dalam container
+    command: bash -c "npm start"  # Gunakan shell di dalam container
     # menunggu layanan db aktif terlebih dahulu
     depends_on: 
       - db
