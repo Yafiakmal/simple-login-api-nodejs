@@ -7,3 +7,5 @@ CREATE TABLE refresh_tokens (
     revoked BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (user_id) REFERENCES users(id_user) ON DELETE CASCADE
 );
+
+SELECT id_user FROM users WHERE email = 'yafiakmal45@gmail.com' OR username = 'yafiakmal45@gmail.com';

@@ -1,0 +1,64 @@
+openapi: 3.0.0 
+info:
+  title: Login Apps With Node Js
+  version: 1.0.0  
+  description: API untuk authentikasi pengguna.  
+servers:
+  - url: http://localhost:3000/auth
+    description: Server Development
+paths:  # Daftar endpoint yang tersedia
+  /register:
+    post:
+      summary: Menambahkan pengguna baru.
+      description: Menambahkan pengguna baru ke database dengan default is_verify = false.
+      requestBody:  # Body request yang diperlukan
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/register'  # Referensi ke schema User
+      responses:
+        '201':  # Kode status HTTP
+          description: Pengguna berhasil ditambahkan  # Deskripsi respons
+          content:
+            application/json:
+              schema:
+                type:  
+                properties:
+                  
+  /users/{id}:  # Endpoint dengan parameter dinamis (ID pengguna)
+    get:
+      summary: Mendapatkan detail pengguna  # Deskripsi singkat endpoint
+      description: Mengembalikan detail pengguna berdasarkan ID.  # Deskripsi detail
+      parameters:  # Parameter yang diperlukan
+        - name: id  # Nama parameter
+          in: path  # Lokasi parameter (path, query, header, dll.)
+          required: true
+          schema:
+            type: integer  # Tipe data parameter
+      responses:
+        '200':
+          description: Sukses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'  # Referensi ke schema User
+components:  # Komponen yang bisa digunakan ulang
+  schemas:
+    register:  # Schema untuk model User
+      type: object  # Tipe data (object)
+      properties:  # Properti dari object User
+        username:
+          type: integer  # Tipe data (integer)
+          example: 1  # Contoh nilai
+        email:
+          type: string
+          format: email  # Format data (email)
+          example: john.doe@example.com
+        password:
+          type: string  # Tipe data (string)
+          example: John Doe  # Contoh nilai
+      required:  # Properti yang wajib diisi
+        - name
+        - email
+        - password

@@ -1,48 +1,44 @@
-var createError = require("http-errors");
-const { validationResult } = require("express-validator");
+require('dotenv').config();
+const createError = require("http-errors");
+const debugServer = require("debug")("app:server");
+const mailer = require('../config/mailer')
 const userModel = require("../models/userModel");
-const debugServer = require('debug')('app:server')
+const utils = require("../utils/tokens")
 
 
-const register = async (req, res, next) => {
-  // ===== MIDDLEWARE =====
-
-  // ======== MAIN ========
+exports.register = async (req, res, next) => {
   const { username, email, password } = req.body;
-
-  // Validasi input tidak boleh kosong
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    debugServer(`Validation Error!`)
-    return res.status(400).json({ errors: errors.array() });
-  }
-
   try {
     //CEK USERNAME EXIST DAN VERIFIED
-    // const result = await userModel.getUsersByUsername(username)[0]
-    // res.json([await userModel.getUsersByUsername(username)][0].length)
     debugServer(`Looking for Exist User `)
-    if ([await userModel.getUsersByUsername(username)][0].length) {
-      res.status(409).json({ error: "Username already exists" });
-    } else {
-      // CEK EMAIL EXIST AND VERIFIED
-      if ([await userModel.getUsersByEmail(email)][0].length) {
-        res.status(409).json({ error: "Email already exists" });
-      } else {
-        // HASH PASSWORD IN USER MODEL
-        // CREATE NEW USER TO DB
-        await userModel.deleteByUsernameAndEmail(username, email)
-        await userModel.createUser(username, email, password);
-      }
+    if (await userModel.checkUserExist(username)) {
+      return next(createError(409, 'Username Already Exist'));
+    } else if(await userModel.checkUserExist(email)){
+      return next(createError(409, 'Email Already Exist'));
+    }else {
+      // delete user because it is not exist(not verified)
+      debugServer(`Delete User ${username}, and Creating New Row`)
+      await userModel.deleteByUsernameAndEmail(username, email)
+      await userModel.createUser(username, email, password);
     }
-    debugServer(`Sending verification Code`)
-    res.status(200).json({msg:`We've send ${email} verify code, Please Verify Your Email`})
-    // SENDING JWT CODE TO EMAIL
+    
+    try {
+      debugServer(`Sending verification Code to ${email}`)
+      mailer.sendVerificationEmail(email, await utils.generateVerToken(email));
+
+      return res.status(201).json({
+        status: 'created',
+        statusCode: 201,
+        message: `Succesfully registered, Please verify your email ${email} to complete registration.`,
+      });
+    } catch (error) {
+      debugServer("Terjadi kesalahan ketika mengirim email ! ", error);
+      next(createError(500, "Unidentified Error While Sending Email"));  
+    }
 
   } catch (error) {
-    console.info("Error creating user :", error);
+    debugServer("Error creating user :", error);
     next(createError(500, "Unidentified Error While Creating User"));
   }
 };
 
-module.exports = { register };

@@ -1,41 +1,19 @@
 const express = require("express");
-const controller = require('../controllers/registerController')
-const { validateRegisterInput, validateLoginInput } = require('../middlewares/validationMiddleware');
+const registerController = require('../controllers/registerController')
+const verifyController = require('../controllers/verifyController')
+const loginController = require('../controllers/loginController')
+const logout = require('../controllers/logoutController')
+const validate = require('../middlewares/validationMiddleware');
 
-var router = express.Router();
+const router = express.Router();
 
-router.post("/register", validateRegisterInput, controller.register);
+router.post("/register", validate.validateRegisterInput, registerController.register);
 
-router.post("/login", validateLoginInput,(req, res) => {
-  res.status(500).json({ message: "ini api login" });
-  // ===== MIDDLEWARE =====
-  // VALIDATION
-  // FORMAT SESUAI
-  // PANjANG KARAKTER
-  // Karakter Khusus
-  // No Blank
+router.post("/login", validate.validateLoginInput, loginController.login);
 
-  // XSS, Hapus atau encode karakter-karakter yang bisa menyebabkan XSS.
-  // CSRF
-  // Captcha
+router.get("/verify/:token", verifyController.verifyUserToken);
 
-  // ===== MAIN =====
-  // CEK ACCESS TOKEN COOKIE
-  // JIKA VALID, REDIRECT TO HOME
-  // JIKA TIDAK VALID, CEK REFRESH TOKEN
-  // JIKA VALID, GENEREATE AT DAN RT, DAN REDIRECT TO HOME
-  // JIKA TIDAK VALID, MASUK PROSES LOGIN
+router.post("/logout", logout.logout)
 
-  // PROSES LOGIN
-  // CEK INDENTIFIER(USERNAME/EMAIL) EXIST
-  // SELECT username, email, hpass FROM users WHERE (username = $1 OR email = $2) AND hpass = $3 AND is_verified = true;
-  // JIKA USERNAME/EMAIL ADA, MAKA COMPARE HASH PASSWORD
-  // JIKA MATCH, GENERATE AT AND RT DAN REDIRECT
-  // JIKA TIDAK, REPONSE INVALID CREDENTIAL
-  // JIKA TIDAK ADA, RESPONSE INVALID CREDENTIAL
-});
-
-router.get("/verify/:token", (req, res) => {
-  res.status(500).json({ message: "ini api verify" });
-});
+// router.get("/protected", validate.validateHeader, accessToken.validateToken, userData.getProtectedDataById)
 module.exports = router;
