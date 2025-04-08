@@ -6,17 +6,32 @@ const authModel = require("../models/authModels");
 
 exports.logout = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshtoken;
+    const refreshToken = req.cookies["refreshTokenLogout"];
     const isValid = jwt.verify(refreshToken, process.env.JWT_RT_SECRET);
+
     if (isValid) {
-      //merevoke refresh token di database
-      const revoke = await authModel.revokeRefreshToken(refreshToken);
-      //menghapus refresh token di cookies
-      return res.clearCookie("refreshToken").status(204).end();
+      // REVOKE REFRESH TOKEN DATABASE
+      // const revoke =
+      await authModel.revokeRefreshToken(refreshToken);
+
+      // RESPONSE, CLEAR COOKIE CLIENT
+      return res
+        .clearCookie("refreshTokenLogut")
+        .clearCookie("refreshTokenRefresh")
+        .status(204)
+        .end();
     }
-    res.clearCookie("refreshToken").status(204).end();
+
+    // RESPONSE, CLEAR COOKIE CLIENT
+    res
+      .clearCookie("refreshTokenLogout")
+      .clearCookie("refreshTokenRefresh")
+      .status(204)
+      .end();
   } catch (error) {
-    debugServer(`Error Logout : ${error}`)
-    next(createError())
+    res
+      .clearCookie("refreshTokenLogout")
+      .clearCookie("refreshTokenRefresh")
+    createError(409, "Token are not valid");
   }
 };

@@ -4,15 +4,17 @@ const userModel = require("../models/userModel");
 
 exports.getProtectedDataById = async (req, res, next)=>{
     try {
-        const userData = await userModel.getUserData(req.payload.email)
+        const userData = await userModel.getUserData(req.data.email)
         res.status(200).json({
             status : 'success',
-            statusCode : 200,
-            data : {userData}
+            message: "successfully get data user",
+            data : [{
+                userData
+            }],
         })    
     } catch (error) {
         debugServer(`Error Getting User Data : ${error}`)
-        next(createError(500, 'interal Server Error'))
+        createError(500, 'interal Server Error')
     }
     
 

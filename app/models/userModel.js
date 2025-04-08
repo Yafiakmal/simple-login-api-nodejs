@@ -51,10 +51,10 @@ exports.createUser = async (username, email, password) => {
     const saltRounds = 10;
     const hpass = await bcrypt.hash(password, saltRounds);
     const result = await db.query(
-      "INSERT INTO users (username, email, hpass) VALUES ($1, $2, $3) RETURNING *",
+      "INSERT INTO users (username, email, hpass) VALUES ($1, $2, $3) RETURNING username, email",
       [username, email, hpass]
     );
-    debugDB(`Creating user : `, result.rows[0])
+    // debugDB(`Creating user : `, result.rows[0])
     return result.rows[0];
   } catch (error) {
     debugDB(error.code);
@@ -72,7 +72,7 @@ exports.deleteByUsernameAndEmail = async (username, email) => {
       `DELETE FROM users WHERE (username=$1 OR email=$2) RETURNING *`,
       [username, email]
     );
-    debugDB(`Deleting user : `,res.rows[0]);
+    // debugDB(`Deleting user : `,res.rows[0]);
     return res.rows[0];
   } catch (error) {
     debugDB(`Error Deleting User : `,error);
@@ -90,9 +90,9 @@ exports.changeVerifyStatusTrue = async (email) => {
       "UPDATE users SET is_verified = TRUE WHERE email = $1 RETURNING is_verified",
       [email]
     );
-    debugDB(
-      `${email} verified status changed to ${status.rows[0].is_verified}`
-    );
+    // debugDB(
+    //   `${email} verified status changed to ${status.rows[0].is_verified}`
+    // );
     return status.rows[0].is_verified;
   } catch (error) {
     throw error;

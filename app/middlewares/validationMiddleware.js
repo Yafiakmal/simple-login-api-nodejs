@@ -1,30 +1,40 @@
 const { check, body, validationResult } = require("express-validator");
-const createError = require("http-errors");
+const debugServer = require('debug')('app:server')
 
 // Middleware untuk validasi register
 const validateRegisterInput = [
   body("username")
     .notEmpty()
-    .withMessage("Username harus diisi")
+    .withMessage("Username must be filled")
     .isLength({ min: 3 })
-    .withMessage("Username minimal 3 karakter"),
+    .withMessage("Username must be more than 3 letters"),
 
   body("email")
     .notEmpty()
-    .withMessage("Email harus diisi")
+    .withMessage("Email must be filled")
     .isEmail()
-    .withMessage("Email tidak valid"),
+    .withMessage("Please input email format"),
 
   body("password")
     .notEmpty()
-    .withMessage("Password harus diisi")
+    .withMessage("Password must be filled")
     .isLength({ min: 6 })
-    .withMessage("Password minimal 6 karakter"),
+    .withMessage("Password must be more than 6 letters"),
 
-    (req, res, next) => {
+    (err, req, res, next) => {
       const errors = validationResult(req);
+      debugServer('Validation middleware')
       if (!errors.isEmpty()) {
-        next(createError(400, errors.array()))
+        const error = []
+        errors.errors.forEach((d) => {
+          error.push({
+            type: 'input validation',
+            path: d.path,
+            message: d.msg
+          })
+        })
+        err = error
+        debugServer('error : ', error)
       }
       next();
     },
@@ -34,14 +44,31 @@ const validateRegisterInput = [
 const validateLoginInput = [
   body("identifier")
     .notEmpty()
-    .withMessage("Identifier harus diisi"),
+    .withMessage("Identifier must be filled"),
 
-  body("password").notEmpty().withMessage("Password harus diisi"),
+  body("password")
+  .notEmpty()
+  .withMessage("Password must be filled"),
 
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      next(createError(400, errors.array()))
+      
+      const error = []
+        errors.errors.forEach((d) => {
+          error.push({
+            type: 'input validation',
+            path: d.path,
+            message: d.msg
+          })
+        })
+      
+      return res
+      .status(400)
+      .json({
+        status: "error",
+        errors: error,
+      });
     }
     next();
   },
@@ -53,7 +80,22 @@ const validateHeader = [
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return next(createError(400, errors.array()))
+      
+      const error = []
+        errors.errors.forEach((d) => {
+          error.push({
+            type: 'input validation',
+            path: d.path,
+            message: d.msg
+          })
+        })
+
+      return res
+      .status(400)
+      .json({
+        status: "error",
+        errors: error,
+      });
     }
     next();
   },

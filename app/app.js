@@ -3,6 +3,7 @@ const cookieParser = require('cookie-parser');
 const createError = require('http-errors');
 const path = require('path');
 const logger = require('morgan');
+const cors = require('cors');
 
 const debugServer = require('debug')('app:server')
 const authRoute = require('./routes/authRoutes');
@@ -11,12 +12,18 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+//app.set('views', path.join(__dirname, 'views'));
+//app.set('view engine', 'ejs');
+//app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // hanya izinkan dari frontend Anda
+  credentials: true
+}));
 
 app.use(logger('short'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+//app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true })); // 'extended: true' untuk nested objects
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -28,7 +35,7 @@ const limiter = rateLimit({
   headers: true, // Tambahkan info rate limit di response header
 });
 
-app.use('/auth', limiter, authRoute);
+app.use('/auth', authRoute);
 app.use('/', limiter, userRoute);
 
 // catch 404 and forward to error handler
@@ -40,8 +47,9 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   res.status(err.status || 500).json({
     status: 'error',
-    statusCode: err.status || 500,
-    message: err.message || 'Internal Server Error',
+    errors: [{
+      message: err.message || 'Internal Server Error'
+    }]
   });
 });
 

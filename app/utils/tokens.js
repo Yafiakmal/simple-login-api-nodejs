@@ -8,7 +8,7 @@ exports.generateTokens = async (payload) => {
   }
 
   const accessToken = jwt.sign(payload, process.env.JWT_AT_SECRET, {
-    expiresIn: 60,
+    expiresIn: 180,
   });
 
   const refreshToken = jwt.sign(payload, process.env.JWT_RT_SECRET, {
@@ -24,9 +24,8 @@ exports.generateVerToken = async (email) => {
   if (!email || typeof email !== "string" || !/^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/.test(email)) {
     throw new Error("Invalid email format");
   }
-
   return jwt.sign({ email }, process.env.JWT_SECRET, {
-    expiresIn: 180,
+    expiresIn: parseInt(process.env.JWT_SECRET_TIME),
   });
 };
 

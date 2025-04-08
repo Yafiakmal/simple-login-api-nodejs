@@ -9,7 +9,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - node-login-db:/var/lib/postgresql/data
+      - ./postgresql/data:/var/lib/postgresql/data
   app:
     image: node:latest
     container_name: node-login-app
@@ -21,13 +21,12 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: development
-    stdin_open: true  # Set agar bisa interactive
-    tty: true  # Menjaga terminal tetap aktif
-    command: bash -c "npm start"  # Gunakan shell di dalam container
+    stdin_open: true # Set agar bisa interactive
+    tty: true # Menjaga terminal tetap aktif
+    command: bash -c "npm start" # Gunakan shell di dalam container
     # menunggu layanan db aktif terlebih dahulu
-    depends_on: 
+    depends_on:
       - db
-
-volumes:
-  node-login-db:
-  # node_modules:
+# volumes:
+# node-login-db:
+# node_modules:

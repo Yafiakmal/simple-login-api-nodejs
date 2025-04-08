@@ -15,7 +15,7 @@ exports.recaptcha = async (req, res, next)=>{
         return next(createError(400,'Captcha verification failed'))        
     } catch (error) {
         debugServer(`Error Verifying captcha : ${error}`)
-        return next(createError(500,'Internal Server Error'))
+        return next(createError(500,'Internal Server Error, while verifying captcha'))
     }
     
 }

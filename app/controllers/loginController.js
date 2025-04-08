@@ -6,9 +6,10 @@ const authModel = require("../models/authModels");
 const utils = require("../utils/tokens");
 
 exports.login = async (req, res, next) => {
-  // ===== MAIN =====
   try {
     const { identifier, password } = req.body;
+
+    // CHECK USER EXIST
     if (await userModel.checkUserExist(identifier)) {
       if (await userModel.verifyPassword(identifier, password)) {
         const payload = await userModel.getUserData(identifier, [
@@ -16,24 +17,37 @@ exports.login = async (req, res, next) => {
           "username",
           "email",
         ]);
+
         // GENERATE TOKEN
         const tokens = await utils.generateTokens(payload);
+        
         // STORE REFRESH TOKEN TO DATABASE
         await authModel.addRefreshToken(payload.id_user, tokens.refreshToken);
 
-        // Set refresh token sebagai HTTP-only cookie
+        // SET REFRESH HTTP-ONLY COOKIE
         res
-          .cookie("refreshToken", tokens.refreshToken, {
+          .cookie("refreshTokenRefresh", tokens.refreshToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // Hanya HTTPS di production
+            secure: process.env.NODE_ENV === "production", 
             sameSite: "strict",
-            path : '/auth/refresh',
+            path: "/auth/refresh",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
+          })
+          .cookie("refreshTokenLogout", tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", 
+            sameSite: "strict",
+            path: "/auth/logout",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
           })
           .json({
             status: "success",
-            statusCode: 200,
-            token: tokens.accessToken,
+            message: "You are login succesfully",
+            data: [
+              {
+                token: tokens.accessToken,
+              },
+            ],
           });
       } else {
         return next(

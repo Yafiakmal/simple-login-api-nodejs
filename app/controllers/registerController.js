@@ -1,44 +1,52 @@
-require('dotenv').config();
+require("dotenv").config();
 const createError = require("http-errors");
 const debugServer = require("debug")("app:server");
-const mailer = require('../config/mailer')
+const mailer = require("../config/mailer");
 const userModel = require("../models/userModel");
-const utils = require("../utils/tokens")
-
+const utils = require("../utils/tokens");
+const {validationResult}=require("express-validator");
 
 exports.register = async (req, res, next) => {
-  const { username, email, password } = req.body;
   try {
-    //CEK USERNAME EXIST DAN VERIFIED
-    debugServer(`Looking for Exist User `)
+    const { username, email, password } = req.body;
+    debugServer("body: ",req.body)
+
+    // CHECK USERNAME & EMAIL EXIST [VERIFIED]
     if (await userModel.checkUserExist(username)) {
-      return next(createError(409, 'Username Already Exist'));
-    } else if(await userModel.checkUserExist(email)){
-      return next(createError(409, 'Email Already Exist'));
-    }else {
-      // delete user because it is not exist(not verified)
-      debugServer(`Delete User ${username}, and Creating New Row`)
-      await userModel.deleteByUsernameAndEmail(username, email)
+      return next(createError(409, "Username Already Exist"));
+    } else if (await userModel.checkUserExist(email)) {
+      return next(createError(409, "Email Already Exist"));
+    } else {
+      await userModel.deleteByUsernameAndEmail(username, email);
       await userModel.createUser(username, email, password);
     }
-    
+
+    // SEND RESPONSE & EMAIL
     try {
-      debugServer(`Sending verification Code to ${email}`)
-      mailer.sendVerificationEmail(email, await utils.generateVerToken(email));
+      const token = await utils.generateVerToken(email);
+      mailer.sendVerificationEmail(email, token);
+
+
+      // res.clearCookie("verify")
+      res.cookie("verify", token, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/auth/register",
+        maxAge: process.env.JWT_SECRET_TIME * 1000,
+      });
 
       return res.status(201).json({
-        status: 'created',
-        statusCode: 201,
+        status: "success",
+        data: null,
         message: `Succesfully registered, Please verify your email ${email} to complete registration.`,
       });
     } catch (error) {
-      debugServer("Terjadi kesalahan ketika mengirim email ! ", error);
-      next(createError(500, "Unidentified Error While Sending Email"));  
+      debugServer("Error sending email ! ", error);
+      return next(createError(500, "Unidentified Error While Sending Email"));
     }
-
   } catch (error) {
     debugServer("Error creating user :", error);
     next(createError(500, "Unidentified Error While Creating User"));
   }
 };
-

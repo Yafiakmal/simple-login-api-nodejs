@@ -7,32 +7,22 @@ const validateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(" ")[1];
+    debugServer("test jalan, token:", token)
 
+    // CHECK ACCESS TOKEN PROVIDED
     if (!token) {
-      return res.status(401).json({
-        status: "unauthenticated",
-        statusCode: 401,
-        message: `Access token not provided. User Have To Login First`
-
-      });
+      return next(createError(401, `Access token not provided. User Have To Login First`))
     }
-    // debugServer(`token : ${token}`)
-    jwt.verify(token, process.env.JWT_AT_SECRET, (err, decoded) => {
-      // debugServer(`Verify Token`)
-      if (err) {
-        return res.status(403).json({
-          status: "Unauthorized",
-          statusCode: 403,
-          message: "Invalid or expired access token"
-        });
-      }
-      // debugServer(`Fill Payload : ${JSON.stringify(decoded)}`)
-      req.payload = decoded;
-      next();
-    });
+
+    // CHECK VALID ACCESS TOKEN
+    const decoded = jwt.verify(token, process.env.JWT_AT_SECRET)
+    req.data = decoded;
+    next();
   } catch (error) {
-    debugServer(`Error Validate Accecc Token : ${error}`)
-    next(createError(500, `Unidentificated Error When Validate Token`));
+    if (error.name === "TokenExpiredError") {
+      return next(createError(403, `Expired access token`));
+    }
+    next(createError(500, `Unidentificated Error When Validate Token`))
   }
 };
 

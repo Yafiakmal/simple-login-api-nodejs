@@ -1,5 +1,7 @@
 const { Pool } = require('pg');
 require('dotenv').config(); // Pastikan Anda menginstal dotenv untuk mengakses variabel lingkungan
+const debugDB = require("debug")("app:database");
+
 
 const pool = new Pool({
     user: process.env.DB_USER,          // Nama pengguna database
@@ -10,7 +12,7 @@ const pool = new Pool({
 });
 
 pool.connect()
-    .then(() => console.log("Database Connected Successfully!"))
+    .then(() => debugDB("Database Connected Successfully!"))
     .catch(err => console.error("Database Connection Error:", err));
 
 
