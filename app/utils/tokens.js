@@ -6,13 +6,13 @@ exports.generateTokens = async (payload) => {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     throw new Error('Payload must be a plain object');
   }
-
+  delete payload.exp;
+  delete payload.iat;
   const accessToken = jwt.sign(payload, process.env.JWT_AT_SECRET, {
-    expiresIn: 180,
+    expiresIn: parseInt(process.env.JWT_AT_SECRET_EXPIN),
   });
-
   const refreshToken = jwt.sign(payload, process.env.JWT_RT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: parseInt(process.env.JWT_RT_SECRET_EXPIN),
   });
 
   return { accessToken, refreshToken };

@@ -1,4 +1,5 @@
 const { check, body, validationResult } = require("express-validator");
+const createError = require("http-errors");
 const debugServer = require('debug')('app:server')
 
 // Middleware untuk validasi register
@@ -21,9 +22,9 @@ const validateRegisterInput = [
     .isLength({ min: 6 })
     .withMessage("Password must be more than 6 letters"),
 
-    (err, req, res, next) => {
+    (req, res, next) => {
       const errors = validationResult(req);
-      debugServer('Validation middleware')
+      debugServer('[Validate Register Middleware] IsError : ', !errors.isEmpty())
       if (!errors.isEmpty()) {
         const error = []
         errors.errors.forEach((d) => {
@@ -33,8 +34,10 @@ const validateRegisterInput = [
             message: d.msg
           })
         })
-        err = error
-        debugServer('error : ', error)
+        return res.status(400).json({
+          status:'error',
+          errors: error
+        })
       }
       next();
     },
@@ -52,8 +55,8 @@ const validateLoginInput = [
 
   (req, res, next) => {
     const errors = validationResult(req);
+    debugServer('[Validate Login Middleware] IsError : ', !errors.isEmpty())
     if (!errors.isEmpty()) {
-      
       const error = []
         errors.errors.forEach((d) => {
           error.push({
@@ -78,13 +81,14 @@ const validateLoginInput = [
 const validateHeader = [
   check("Authorization", "Authorization header is required").exists(),
   (req, res, next) => {
+    debugServer("validate header")
     const errors = validationResult(req);
+    debugServer('[Validate Header Middleware] IsError : ', !errors.isEmpty())
     if (!errors.isEmpty()) {
-      
       const error = []
         errors.errors.forEach((d) => {
           error.push({
-            type: 'input validation',
+            type: 'header validation',
             path: d.path,
             message: d.msg
           })

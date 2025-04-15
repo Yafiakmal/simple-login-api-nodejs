@@ -15,7 +15,7 @@ exports.verifyUserToken = async (req, res, next) => {
 
       // CHECK VERIFY TOKEN PAYLOAD VALID
       if (await userModel.checkUserExist(email)) {
-        return res.status(409).json({
+        return res.clearCookie('verify').status(409).json({
           status: "error",
           data: null,
           errors: [
@@ -30,7 +30,7 @@ exports.verifyUserToken = async (req, res, next) => {
 
       // CHANGE USER VERIFIED STATUS
       if (await userModel.changeVerifyStatusTrue(email)) {
-        res.status(200).json({
+        res.status(200).clearCookie('verify').json({
           status: "success",
           data: [{
             email: email

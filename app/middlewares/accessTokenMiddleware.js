@@ -7,7 +7,7 @@ const validateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(" ")[1];
-    debugServer("test jalan, token:", token)
+    debugServer("[ValidateToken] token:", token)
 
     // CHECK ACCESS TOKEN PROVIDED
     if (!token) {
@@ -17,8 +17,10 @@ const validateToken = async (req, res, next) => {
     // CHECK VALID ACCESS TOKEN
     const decoded = jwt.verify(token, process.env.JWT_AT_SECRET)
     req.data = decoded;
+    debugServer("reeq.data:",req.data)
     next();
   } catch (error) {
+    debugServer("[ValidateToken] Error:", error)
     if (error.name === "TokenExpiredError") {
       return next(createError(403, `Expired access token`));
     }

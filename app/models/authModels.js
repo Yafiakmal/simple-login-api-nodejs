@@ -5,6 +5,7 @@ const userModel = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
 exports.addRefreshToken = async (id_user, token) => {
+  debugDB("[addRefreshToken] id, token:", id_user, token)
   if (!id_user && !token) {
     throw new Error("Parameter must be all filled");
   }
@@ -19,16 +20,17 @@ exports.addRefreshToken = async (id_user, token) => {
     );
     return result.rowCount > 0; // Mengembalikan true jika berhasil disimpan
   } catch (error) {
+    debugDB("[addRefreshToken] Error:", error)
     if (error.name === "TokenExpiredError") {
       throw new Error("Token refresh telah kedaluwarsa.");
     }
-    debugDB("Error saat menambahkan Token");
     throw error; // Melempar error lainnya
   }
 };
 
 // return true 
 exports.revokeRefreshToken = async (token) => {
+  debugDB("[revokeRefreshToken] token:", token)
   if (!token) {
     throw new Error("Parameter must be all filled");
   }
@@ -46,13 +48,14 @@ exports.revokeRefreshToken = async (token) => {
 
     return result.rows[0].revoked;
   } catch (error) {
-    console.error("Error revoking refresh token:", error.message);
+    debugDB("[revokeRefreshToken] Error:", error.message)
     throw error;
   }
 };
 
 
 exports.checkRefreshTokenExist = async (token) => {
+  debugDB("[checkRefreshTokenExist] token:", token)
   if (!token) {
     throw new Error("Parameter must be all filled");
   }
@@ -67,6 +70,7 @@ exports.checkRefreshTokenExist = async (token) => {
     }
     return !result.rows[0].revoked
   } catch (error) {
+    debugDB("[checkRefreshTokenExist] Error:", error)
     throw error
   }
 };
