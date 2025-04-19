@@ -4,7 +4,9 @@ const verifyController = require('../controllers/verifyController')
 const loginController = require('../controllers/loginController')
 const logoutController = require('../controllers/logoutController')
 const refreshController = require('../controllers/refreshTokenController')
+const removeController = require('../controllers/removeController')
 const validate = require('../middlewares/validationMiddleware');
+const accessToken = require('../middlewares/accessTokenMiddleware');
 const {checkVerifyToken} = require('../middlewares/verifyTokenMiddleware')
 const rateLimit = require('express-rate-limit');
 const limiter = rateLimit({
@@ -26,10 +28,7 @@ router.post("/logout", logoutController.logout)
 
 router.post("/refresh", limiter, refreshController.refresh)
 
-// router.post("/refresh", (req, res) => {
-//   console.log(req.headers); // Ini pasti harus tampil
-//   res.send('Lihat console!');
-// })
+router.post("/remove", accessToken.validateToken, validate.validateRemoveInput, removeController.remove)
 
 // router.get("/protected", validate.validateHeader, accessToken.validateToken, userData.getProtectedDataById)
 module.exports = router;

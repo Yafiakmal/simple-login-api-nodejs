@@ -44,6 +44,35 @@ const validateRegisterInput = [
 ];
 
 // Middleware untuk validasi login
+
+const validateRemoveInput = [
+  body("password")
+  .notEmpty()
+  .withMessage("Password must be filled"),
+
+  (req, res, next) => {
+    const errors = validationResult(req);
+    debugServer('[Validate Remove Middleware] IsError : ', !errors.isEmpty())
+    if (!errors.isEmpty()) {
+      const error = []
+        errors.errors.forEach((d) => {
+          error.push({
+            type: 'input validation',
+            path: d.path,
+            message: d.msg
+          })
+        })
+      
+      return res
+      .status(400)
+      .json({
+        status: "error",
+        errors: error,
+      });
+    }
+    next();
+  },
+]
 const validateLoginInput = [
   body("identifier")
     .notEmpty()
@@ -109,4 +138,5 @@ module.exports = {
   validateRegisterInput,
   validateLoginInput,
   validateHeader,
+  validateRemoveInput
 };

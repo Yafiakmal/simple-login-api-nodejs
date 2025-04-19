@@ -7,6 +7,9 @@ exports.getProtectedDataById = async (req, res, next)=>{
     try {
         debugServer("email:", req.data.email)
         const userData = await userModel.getUserData(req.data.email)
+        if(!userData){
+            return next(createError(409, "please login again"))
+        }
         debugServer("userdata:", userData)
         res.status(200).json({
             status : 'success',

@@ -4,7 +4,7 @@ const debugDB = require("debug")("app:database");
 
 // return object
 exports.getUserData = async (identifier, columns = ["username", "email"]) => {
-  debugDB("[getUserData]")
+  debugDB("[getUserData]");
   if (!identifier) {
     throw new Error("Identifier (username or email) must be filled");
   }
@@ -24,7 +24,7 @@ exports.getUserData = async (identifier, columns = ["username", "email"]) => {
 
 // return bool
 exports.checkUserExist = async (identifier) => {
-  debugDB("[checkUserExist]")
+  debugDB("[checkUserExist]");
   if (!identifier) {
     throw new Error("Identifier(username or email) must be filled");
   }
@@ -46,7 +46,7 @@ exports.checkUserExist = async (identifier) => {
 
 // return first object and insert user
 exports.createUser = async (username, email, password) => {
-  debugDB("[createUser]")
+  debugDB("[createUser]");
   if (!username || !email || !password) {
     throw new Error(`make sure parameters all are filled`);
   }
@@ -66,27 +66,27 @@ exports.createUser = async (username, email, password) => {
 };
 
 // return first object and delete user data
-exports.deleteByUsernameAndEmail = async (username, email) => {
-  debugDB("[deleteByUsernameAndEmail]")
-  if (!username || !email) {
+exports.deleteByUsernameAndEmail = async (identifier) => {
+  debugDB("[deleteByUsernameAndEmail]");
+  if (!identifier) {
     throw new Error(`make sure all parameters are filled`);
   }
   try {
     const res = await db.query(
-      `DELETE FROM users WHERE (username=$1 OR email=$2) RETURNING *`,
-      [username, email]
+      `DELETE FROM users WHERE (username=$1 OR email=$1) RETURNING *`,
+      [identifier]
     );
     // debugDB(`Deleting user : `,res.rows[0]);
     return res.rows[0];
   } catch (error) {
-    debugDB(`Error Deleting User : `,error);
+    debugDB(`Error Deleting User : `, error);
     throw error;
   }
 };
 
 // return true
 exports.changeVerifyStatusTrue = async (email) => {
-  debugDB("[changeVerifyStatusTrue]")
+  debugDB("[changeVerifyStatusTrue]");
   if (!email) {
     throw new Error(`make sure email are filled in parameter`);
   }
@@ -106,7 +106,7 @@ exports.changeVerifyStatusTrue = async (email) => {
 
 // return bool is password match
 exports.verifyPassword = async (identifier, password) => {
-  debugDB("[verifyPassword]")
+  debugDB("[verifyPassword]");
   if (!identifier || !password) {
     throw new Error(`make sure all parameters are filled`);
   }
@@ -117,7 +117,7 @@ exports.verifyPassword = async (identifier, password) => {
     );
     if (!result.rows[0]) {
       // throw new Error(`Can't Verify User ${identifier}, Not Found`);
-      return false
+      return false;
     }
     const isValid = await bcrypt.compare(password, result.rows[0].hpass);
     return isValid;
