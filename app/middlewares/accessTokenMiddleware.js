@@ -17,12 +17,12 @@ const validateToken = async (req, res, next) => {
     // CHECK VALID ACCESS TOKEN
     const decoded = jwt.verify(token, process.env.JWT_AT_SECRET)
     req.data = decoded;
-    debugServer("reeq.data:",req.data)
+    debugServer("req.data:",req.data)
     next();
   } catch (error) {
     debugServer("[ValidateToken] Error:", error)
     if (error.name === "TokenExpiredError") {
-      return next(createError(403, `Expired access token`));
+      return next(createError(403, `Expired access token, please refresh the token`));
     }
     next(createError(500, `Unidentificated Error When Validate Token`))
   }

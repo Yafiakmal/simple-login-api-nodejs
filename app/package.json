@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "npm install && DEBUG=app:* nodemon ./bin/www"
+    "start": "npm install && DEBUG=app:* node ./bin/www",
+    "dev" : "DEBUG=app:* nodemon ./bin/www"
   },
   "dependencies": {
     "bcrypt": "^5.1.1",

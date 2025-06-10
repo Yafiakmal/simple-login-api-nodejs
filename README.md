@@ -1,130 +1,181 @@
 # simple-login-api-nodejs
 
-## create file .env in app/
-1. you have to add this environment variable first in ./app/.env
+---
 
-2. get your _password app_ in google account management and fill it to EMAIL_USER and EMAIL_PASS variable.
+## Run in docker
+
+### Requirement
+
+- docker installed
+- create ./app/.env file then enter the variable bellow
+  > you must get the **_app ppassword_** in google account manager
 
 ```
-PORT = 3000
-
-DB_USER = "postgres"
-DB_HOST = "db"
-DB_DATABASE = "node-login-db"
-DB_PASSWORD = "postgres"
-DB_PORT = "5432"
-
 EMAIL_USER = <your gmail>
-EMAIL_PASS =  <password app from gmail>
-
-NODE_ENV = "development"
-
-JWT_SECRET = "nggoemail"
-JWT_AT_SECRET = "pokokepokok"
-JWT_RT_SECRET = "pokokepokok2"
-
-JWT_SECRET_TIME = 180000 #3 * 60 * 1000
-JWT_AT_SECRET_EXPIN = 300 #5 * 60 * 1000
-JWT_RT_SECRET_EXPIN = 604800# 604800000 #7 * 24 * 60 * 60 * 1000
-
-RECAPTCHA_SITEKEY = <you can get from google captcha>
-RECAPTCHA_SECRETKEY = <you can get from google captcha>
+EMAIL_PASS = <password app from gmail>
 
 ```
 
-## run docker compose
+### Run docker compose
 
-compose nya akan menjalankan 2 container yaitu database postgres dan server express.
+[this](./docker-compose.yml) compose would run 2 container. express server and postgres database
+
 ```shell
 sudo docker compose up -f docker-compose.yml
 ```
 
-## create table
+---
 
-### in to psql in container
-
-```shell
-sudo docker exec -it node-login-db psql -U postgres -d node-login-db
-```
-
-tidak perlu membuat database karena docker-compose.yml sudah menginisialisasi environment variable untuk membuat database dan dibuatkan otomatis ketika menjalankan
-
-### buat table berikut
-
-```sql
-CREATE TABLE users (
-    id_user UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    hpass TEXT NOT NULL,
-    is_verified BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE refresh_tokens (
-    id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL,
-    token TEXT NOT NULL,
-    expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    revoked BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users(id_user) ON DELETE CASCADE
-);
-```
-
-## Accessing some api with postman
+## Try api with curl
 
 ### POST http://localhost:3000/auth/register
-api ini membutuhkan body:
+
 ```json
-{
+ curl -X POST http://localhost:3000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
     "username": "yourname",
     "email":"youremail@gmail.com",
     "password":"yourpassword"
-}
+}'
 ```
 
-contoh response jika berhasil
+successful response
+
 ```json
 {
-    "status": "success",
-    "data": [
-        {
-            "verify_code": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InlhZmlha21hbEBnbWFpbC5jb20iLCJpYXQiOjE3NDUwNTY2NTEsImV4cCI6MTc0NTIzNjY1MX0.mBmlEqEB4ILBdb1vIqDmLfs1au7slNfuuNB2IG1wtXk"
-        }
-    ],
-    "message": "Succesfully registered, Please verify your email yafiakmal@gmail.com to complete registration."
-}
+    "status":"success",
+    "data": [{
+        "verify_code":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InlvdXJlbWFpbEBnbWFpbC5jb20iLCJpYXQiOjE3NDk1NDU5NjcsImV4cCI6MTc0OTcyNTk2N30.0-_xAFIsTOsw9Bbrq_UYZwuZWFvllJTmyWLgvdKnTu8"
+        }],
+    "message":"Succesfully registered, Please verify your email youremail@gmail.com to complete registration."
+        }%
 ```
 
-data verify_code bisa digunakan untuk pengujian api /auth/verify/:token, jika tidak ingin menggunakan email asli.
+_**verify_code**_ is used to verify your email 
 
 ### GET http://localhost:3000/auth/verify/:token
-api ini tidak perlu body.
 
-contoh response jika berhasil
+you can get **token** from register. then verify your email
+
+```bash
+curl -X GET http://localhost:3000/auth/verify/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InlvdXJlbWFpbEBnbWFpbC5jb20iLCJpYXQiOjE3NDk1NDU5NjcsImV4cCI6MTc0OTcyNTk2N30.0-_xAFIsTOsw9Bbrq_UYZwuZWFvllJTmyWLgvdKnTu8
+
+```
+
+successful response
 ```json
 {
-    "status": "success",
-    "data": [
-        {
-            "email": "yafiakmal@gmail.com"
-        }
-    ],
-    "message": "Your Email, Verified Successfuly."
-}
-
+    "status":"success",
+    "data":[{
+        "email":"youremail@gmail.com"
+        }],
+    "message":"Your Email, Verified Successfuly."
+}%
 ```
 
 ### POST http://localhost:3000/auth/login
 
-### GET http://localhost:3000/auth/protected
+this curl command would save cookie in cookie.txt
+```bash
+curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \
+  -c "cookie.txt" \
+  -d '{
+    "identifier": "yourname",
+    "password":"yourpassword"
+}'
+```
+successful response
+```json
+{
+    "status":"success",
+    "message":"You are login succesfully",
+    "data":[{
+        "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoiMDA3MTQ3ZDktNWI1ZC00ZGI4LTg2Y2YtYzdhN2QzYWY2MzlkIiwidXNlcm5hbWUiOiJ5b3VybmFtZSIsImVtYWlsIjoieW91cmVtYWlsQGdtYWlsLmNvbSIsImlhdCI6MTc0OTU0NzQzNywiZXhwIjoxNzQ5NTQ3NzM3fQ.IIsM68Ig7LAEWdk2DBLa6eMUpBO18VsoMlJ7G5x0u2A",
+        "rtoken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoiMDA3MTQ3ZDktNWI1ZC00ZGI4LTg2Y2YtYzdhN2QzYWY2MzlkIiwidXNlcm5hbWUiOiJ5b3VybmFtZSIsImVtYWlsIjoieW91cmVtYWlsQGdtYWlsLmNvbSIsImlhdCI6MTc0OTU0NzQzNywiZXhwIjoxNzUwMTUyMjM3fQ.YYIlU-BkTMVNcl1YnfAcxXN-yPXc1deuXzCLXwCX7qs"
+        }]
+}% 
+```
+
+### GET http://localhost:3000/user/
+```bash
+curl -X GET http://localhost:3000/user/ \
+-c "cookie.txt" \
+-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoiMDA3MTQ3ZDktNWI1ZC00ZGI4LTg2Y2YtYzdhN2QzYWY2MzlkIiwidXNlcm5hbWUiOiJ5b3VybmFtZSIsImVtYWlsIjoieW91cmVtYWlsQGdtYWlsLmNvbSIsImlhdCI6MTc0OTU0ODcxOSwiZXhwIjoxNzQ5NTQ5MDE5fQ.3GS-15oBAawfS1jtklbC7M44oOQmGPbEIKNpE-fc5-M"
+```
+successfull response
+```json
+{
+    "status":"success",
+    "message":"successfully get data user",
+    "data":[{
+        "userData":{
+            "username":"yourname",
+            "email":"youremail@gmail.com"
+            }
+        }]
+}%
+```
 
 ### POST http://localhost:3000/auth/logout
+logout would revoke refresh token in database
+
+```bash
+curl -X POST http://localhost:3000/auth/logout \
+-b "cookie.txt" -c cookie.txt
+```
+`-b` would include cookie.txt in request
+`-c` would set new empty cookie
+
+
+```txt
+╭─muhammad at acer in ~
+╰─○ cat cookie.txt                                 
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/docs/http-cookies.html
+# This file was generated by libcurl! Edit at your own risk.
+
+#HttpOnly_localhost	FALSE	/auth/refresh	FALSE	1750154559	refreshTokenRefresh	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoiMDA3MTQ3ZDktNWI1ZC00ZGI4LTg2Y2YtYzdhN2QzYWY2MzlkIiwidXNlcm5hbWUiOiJ5b3VybmFtZSIsImVtYWlsIjoieW91cmVtYWlsQGdtYWlsLmNvbSIsImlhdCI6MTc0OTU0OTc1OSwiZXhwIjoxNzUwMTU0NTU5fQ.7mKIHQKePlvJPG9plEeS2efkwFFr5QConRzrnjzi63U
+#HttpOnly_localhost	FALSE	/auth/logout	FALSE	1750154559	refreshTokenLogout	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoiMDA3MTQ3ZDktNWI1ZC00ZGI4LTg2Y2YtYzdhN2QzYWY2MzlkIiwidXNlcm5hbWUiOiJ5b3VybmFtZSIsImVtYWlsIjoieW91cmVtYWlsQGdtYWlsLmNvbSIsImlhdCI6MTc0OTU0OTc1OSwiZXhwIjoxNzUwMTU0NTU5fQ.7mKIHQKePlvJPG9plEeS2efkwFFr5QConRzrnjzi63U
+╭─muhammad at acer in ~
+╰─○ curl -X POST http://localhost:3000/auth/logout \
+-b "cookie.txt" -c cookie.txt
+╭─muhammad at acer in ~
+╰─○ cat cookie.txt                                  
+# Netscape HTTP Cookie File
+# https://curl.haxx.se/docs/http-cookies.html
+# This file was generated by libcurl! Edit at your own risk.
+```
 
 ### POST http://localhost:3000/auth/refresh
+```bash
+curl -X POST http://localhost:3000/auth/refresh -b cookie.txt -c cookie.txt
+```
+
+successful response
+```json
+{
+    "status":"success",
+    "message":"You are login succesfully",
+    "data":[{
+        "token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoiMDA3MTQ3ZDktNWI1ZC00ZGI4LTg2Y2YtYzdhN2QzYWY2MzlkIiwidXNlcm5hbWUiOiJ5b3VybmFtZSIsImVtYWlsIjoieW91cmVtYWlsQGdtYWlsLmNvbSIsImlhdCI6MTc0OTU1MDA5NywiZXhwIjoxNzQ5NTUwMzk3fQ.cppRsoLj8KPPfJFkMyeKtJp-wXXfZQ3YFBXV_XqH8-Y"
+    }]
+}%    
+```
 
 ### POST http://localhost:3000/auth/remove
+```bash
+curl -X POST http://localhost:3000/auth/remove \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF91c2VyIjoiMDA3MTQ3ZDktNWI1ZC00ZGI4LTg2Y2YtYzdhN2QzYWY2MzlkIiwidXNlcm5hbWUiOiJ5b3VybmFtZSIsImVtYWlsIjoieW91cmVtYWlsQGdtYWlsLmNvbSIsImlhdCI6MTc0OTU1MDc1NCwiZXhwIjoxNzQ5NTUxMDU0fQ.DWl_sXy3q3aHUGP_q_XGp6WU9y_iNKnqz0XhDOgSMAs" \
+  -H "Content-Type: application/json" \
+  -c cookie.txt \
+  -d '{"password": "yourpassword"}'
 
-### GET http://localhost:3000/user
+```
+
+successful response
+```json
+{"status":"success","message":"yourname was successfully deleted","data":[]}
+```
+
