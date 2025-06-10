@@ -25,6 +25,7 @@ sudo docker compose up -f docker-compose.yml
 ```
 
 ### Run this to generate table needed
+> **run this** only for first time
 ```shell
 cat database_dump.sql | docker exec -i node-login-db psql -U postgres node-login-db
 ```
