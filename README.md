@@ -24,6 +24,11 @@ EMAIL_PASS = <password app from gmail>
 sudo docker compose up -f docker-compose.yml
 ```
 
+### Run this to generate table needed
+```shell
+cat database_dump.sql | docker exec -i node-login-db psql -U postgres node-login-db
+```
+
 ---
 
 ## Try api with curl
