@@ -6,33 +6,40 @@
 
 ### Requirement
 
-- docker installed
-- create ./app/.env file then enter the variable bellow
-  > you must get the **_app ppassword_** in google account manager
+1. docker installed
+2. clone this repo 
+3. create ./app/.env file then enter the variable bellow
+  > you must create and get the **_app passwords_** in [google account](https://myaccount.google.com/apppasswords)
 
 ```
 EMAIL_USER = <your gmail>
-EMAIL_PASS = <password app from gmail>
+EMAIL_PASS = <password app from google account>
 
 ```
 
-### Run docker compose
+4. Run docker compose
 
-[this](./docker-compose.yml) compose would run 2 container. express server and postgres database
+[this](./docker-compose.yml) compose would install and run 2 images. **nodejs:lts** and **postgres:latest**
 
 ```shell
-sudo docker compose up -f docker-compose.yml
+docker compose -f docker-compose.yml up -d
+docker ps
 ```
 
-### Run this to generate table needed
+5. Run this to generate table needed
 > **run this** only for first time
+- linux
 ```shell
 cat database_dump.sql | docker exec -i node-login-db psql -U postgres node-login-db
+```
+- windows
+```powershell
+Get-Content database_dump.sql | docker exec -i node-login-db psql -U postgres node-login-db
 ```
 
 ---
 
-## Try api with curl
+## You are ready to test the API
 
 ### POST http://localhost:3000/auth/register
 
