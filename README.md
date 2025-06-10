@@ -30,7 +30,7 @@ sudo docker compose up -f docker-compose.yml
 
 ### POST http://localhost:3000/auth/register
 
-```json
+```bash
  curl -X POST http://localhost:3000/auth/register \
   -H "Content-Type: application/json" \
   -d '{
